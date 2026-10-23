@@ -5,62 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>From a GGUF file to an API and a UI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Vazirmatn:wght@400;500;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap">
 <style>
-:root{color-scheme:dark;--bg:#0b0f19;--fg:#f3f4f6;--mut:#9ca3af;--card:#111827;--line:#1f2937;--c1:#34d399;--c2:#60a5fa;--c3:#a78bfa;--c4:#fbbf24;--file:#db2777;--filefg:#ffffff;--ff:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+:root{color-scheme:dark;--bg:#0b0f19;--fg:#f3f4f6;--mut:#9ca3af;--card:#111827;--line:#1f2937;--c1:#34d399;--c2:#60a5fa;--c3:#a78bfa;--c4:#fbbf24;--file:#db2777;--filefg:#ffffff;--ff:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
 
 html[lang="fa"]{--ff:"Vazirmatn",Tahoma,sans-serif}
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
-body{margin:0;min-height:100%;background:radial-gradient(1200px 600px at 50% -200px,rgba(96,165,250,.12),transparent 70%),var(--bg);color:var(--fg);font-family:var(--ff);line-height:1.7;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
-main{max-width:980px;margin:0 auto;padding:28px 20px 48px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--ff);line-height:1.8}
+main{max-width:980px;margin:0 auto;padding:20px 16px 40px}
 .top{display:flex;justify-content:flex-end}
 .seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;direction:ltr}
-.seg button{font:inherit;font-size:13px;border:0;background:transparent;color:var(--mut);padding:4px 14px;cursor:pointer;font-family:var(--ff);transition:background .2s,color .2s}
-.seg button:hover{color:var(--fg)}
+.seg button{font:inherit;font-size:13px;border:0;background:var(--card);color:var(--fg);padding:2px 14px;cursor:pointer;font-family:"Vazirmatn",system-ui,sans-serif}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);font-weight:600}
-h1{font-size:clamp(24px,4vw,34px);font-weight:700;margin:18px 0 10px;line-height:1.3;text-align:center;letter-spacing:-.02em;color:var(--fg)}
-.lead{color:var(--mut);margin:0 auto 24px;max-width:64ch;text-align:center;font-size:15px}
+h1{font-size:clamp(22px,4vw,32px);font-weight:800;margin:8px 0 4px;line-height:1.5;text-align:center;background:linear-gradient(135deg,#60a5fa,#c084fc,#f472b6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.lead{color:var(--mut);margin:0 auto 18px;max-width:62ch;text-align:center}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-.bar button{font:inherit;font-size:14px;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:color .2s,border-color .2s,background .2s}
-.bar button:hover{color:var(--fg);border-color:#374151}
+.bar button{font:inherit;font-size:14px;color:var(--fg);background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:4px 14px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
 button:focus-visible{outline:3px solid var(--c2);outline-offset:2px}
-.bar button[aria-pressed="true"]{border-color:var(--fg);color:var(--fg);background:#1f2937;font-weight:600}
+.bar button[aria-pressed="true"]{border-color:var(--fg);font-weight:600}
 .bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
 .bar .sp{flex:1}
-.stage{position:relative;box-shadow:0 1px 2px rgba(0,0,0,.3),0 20px 50px -12px rgba(0,0,0,.6);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+.stage{position:relative;box-shadow:0 10px 30px rgba(0,0,0,.5);background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:8px}
 svg{display:block;width:100%;height:auto}
 svg text{font-family:var(--ff);fill:var(--fg)}
 .mut{fill:var(--mut)!important}
 .tool{transition:opacity .35s}
 .tool.dim{opacity:.16}
-.eng rect{transition:stroke-width .2s}
-.eng:hover>rect:first-child{stroke-width:3.5}
-.ex:hover rect{stroke:var(--mut)}
-@media (max-width:600px){main{padding:20px 12px 36px}.stage{padding:6px}.panel{padding:16px}}
 .shim{animation:shim 2.4s ease-in-out infinite}
 @keyframes shim{0%,100%{opacity:.35}50%{opacity:1}}
-.panel{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;min-height:120px}
-.panel h2{margin:0 0 6px;font-size:18px;font-weight:700;letter-spacing:-.01em}
-.panel p{margin:4px 0 12px;max-width:70ch;color:#d1d5db}
+.panel{margin-top:14px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px}
+.panel h2{margin:0 0 4px;font-size:20px}
+.panel p{margin:4px 0 10px;max-width:70ch}
 pre{direction:ltr;text-align:left;margin:8px 0;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 14px;overflow-x:auto;font-size:13px;line-height:1.7;font-family:ui-monospace,Menlo,Consolas,monospace}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chips span{font-size:13px;color:var(--mut);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px 10px}
+.chips span{font-size:13px;border:1.5px solid var(--line);border-radius:8px;padding:2px 10px}
 .chips b{font-weight:600}
 .chips .ltr{direction:ltr;unicode-bidi:isolate;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+.flow{animation:flow .8s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-17}}
+svg.paused .flow,svg.paused .shim,svg.paused .ex rect{animation-play-state:paused}
 .ex{cursor:pointer}.eng{cursor:pointer}.eng.on>rect{stroke-width:5}.eng:focus{outline:none}.eng:focus-visible>rect{stroke:var(--fg)}.ex rect{animation:exa 7.2s infinite}
 .ex.on rect{animation:none;stroke:var(--fg);fill:var(--line)}
 .eng.on{filter:drop-shadow(0 0 8px rgba(96,165,250,.7))}
+.ecard{cursor:pointer}.ecard:focus,.inf:focus{outline:none}.ecard:focus-visible>rect:first-child{stroke-width:5}
+.ecard.act{filter:drop-shadow(0 0 10px rgba(96,165,250,.75))}.ecard.act>rect:first-child{stroke-width:5}
+.inf{cursor:pointer}.inf:hover circle,.inf.on circle{fill:var(--line)}.inf:focus-visible circle{stroke-width:4}
 .ex:focus{outline:none}.ex:focus-visible rect{stroke:var(--c2);stroke-width:3}
 .tip{position:absolute;display:none;z-index:5;width:max-content;max-width:min(290px,86%);background:var(--card);color:var(--fg);border:1.5px solid var(--fg);border-radius:12px;padding:10px 14px;font-size:13px;line-height:1.7;box-shadow:0 6px 20px rgba(0,0,0,.18)}
 .tip b{display:block;font-size:14px;margin-bottom:2px}
 .tip a{display:block;direction:ltr;text-align:left;margin-top:8px;color:var(--c2);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;word-break:break-all}.tip p{margin:2px 0}.tip small{display:block;margin-top:6px;color:var(--mut)}
 @keyframes exa{0%,12%{stroke:var(--fg);fill:var(--line)}20%,100%{stroke:var(--line);fill:var(--card)}}
-.me{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);text-align:center;direction:ltr;font-family:Inter,system-ui,sans-serif;color:var(--mut)}
-.me b{display:block;font-size:15px;font-weight:600;color:var(--fg);margin-bottom:4px}
+.me{margin-top:22px;padding-top:16px;border-top:1.5px solid var(--line);text-align:center;direction:ltr;font-family:"Vazirmatn",system-ui,sans-serif}
+.me b{display:block;font-size:17px;font-weight:800}
 .me .lnk{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 22px;margin-top:2px;font-size:14px}
-.me a{color:var(--c2);text-decoration:none;transition:color .2s}.me a:hover{color:#93c5fd}.me a:hover{text-decoration:underline}.me a:focus-visible{outline:3px solid var(--c2);outline-offset:2px;border-radius:4px}
+.me a{color:var(--c2);text-decoration:none}.me a:hover{text-decoration:underline}.me a:focus-visible{outline:3px solid var(--c2);outline-offset:2px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){.shim,.ex rect{animation:none}}
 </style>
 </head>
@@ -77,8 +78,8 @@ pre{direction:ltr;text-align:left;margin:8px 0;background:var(--bg);border:1px s
 <script>
 var L={
 en:{title:"How a GGUF file becomes an API and a UI",
-lead:"A GGUF file packs a model's weights, tokenizer and settings into one file. Each tool opens it with an inference engine, then puts an API or a graphical interface in front of it. Pick a tool to highlight its path. Click any box, quantization type or model name for details.",
-all:"All",ex:"Examples",qt:"Quantization types",s:{"file":["model.gguf · the data source","GGUF is a single-file format from the GGML / llama.cpp project. It holds the tensors (weights), the tokenizer and the metadata, and supports quantization (Q4_K_M, Q5_K, FP16 and more).","Where to get it: the Hugging Face Hub (hf download ..., older name huggingface-cli download), or keep it on a fast local SSD, e.g. /models/llama-3-8b.gguf."],"api":["API · OpenAI-compatible endpoints","All four tools expose standard HTTP (REST) endpoints, with streaming over Server-Sent Events.","POST /v1/chat/completions: interactive chat with message history.","POST /v1/embeddings: turns text into vectors for RAG and semantic search (needs an embedding-capable model)."],"ui":["Interface · frontends and apps","Frontends talk to the model through the API. Chat UIs such as Open WebUI or LibreChat give you a ChatGPT-style panel for personal or team use.","Your own software works too: point the openai Python or Node.js library at the local address, e.g. http://localhost:11434/v1 for Ollama."]},e:{"llama":["llama.cpp · open source, C/C++","The reference engine for GGUF. Runs on CPU, Apple Silicon, NVIDIA, AMD and more, with partial GPU offload.","Special feature: runs almost anywhere, even on small machines, and it is where GGUF and its quant types are born.","Has a UI: yes, a built-in web chat in llama-server."],"ollama":["Ollama · open source","Wraps a GGML-based engine in a simple command line and model store, with one-line downloads of ready-made models.","Special feature: a model registry (ollama pull) and a Modelfile to customize prompts and parameters.","Has a UI: yes, a desktop app and terminal chat."],"lms":["LM Studio · free desktop app","A desktop app to search, download and chat with local models, with a built-in local server.","Special feature: finds models from Hugging Face inside the app, plus the lms CLI. Uses llama.cpp and MLX engines.","Has a UI: yes, a full graphical interface."],"vllm":["vLLM · open source (Python)","A high-throughput serving engine built for GPUs and many parallel users, using PagedAttention and continuous batching.","Special feature: serving at scale (batching, multi-GPU). GGUF is secondary here; its main formats are safetensors with AWQ, GPTQ or FP8 quants.","Has a UI: no. Connect Open WebUI or a similar tool to its API."]},note:"Examples only. Check each model page for the latest releases.",
+lead:"A GGUF file packs a model's weights, tokenizer and settings into one file. Each tool opens it with an inference engine, then puts an API or a graphical interface in front of it. Click an engine box to highlight its path, and press its i button for more details. Click the other boxes, quantization types or model names for details.",
+all:"All",ex:"Examples",qt:"Quantization types",info:"More info",s:{"file":["model.gguf · the data source","GGUF is a single-file format from the GGML / llama.cpp project. It holds the tensors (weights), the tokenizer and the metadata, and supports quantization (Q4_K_M, Q5_K, FP16 and more).","Where to get it: the Hugging Face Hub (hf download ..., older name huggingface-cli download), or keep it on a fast local SSD, e.g. /models/llama-3-8b.gguf."],"api":["API · OpenAI-compatible endpoints","All four tools expose standard HTTP (REST) endpoints, with streaming over Server-Sent Events.","POST /v1/chat/completions: interactive chat with message history.","POST /v1/embeddings: turns text into vectors for RAG and semantic search (needs an embedding-capable model)."],"ui":["Interface · frontends and apps","Frontends talk to the model through the API. Chat UIs such as Open WebUI or LibreChat give you a ChatGPT-style panel for personal or team use.","Your own software works too: point the openai Python or Node.js library at the local address, e.g. http://localhost:11434/v1 for Ollama."]},e:{"llama":["llama.cpp · open source, C/C++","The reference engine for GGUF. Runs on CPU, Apple Silicon, NVIDIA, AMD and more, with partial GPU offload.","Special feature: runs almost anywhere, even on small machines, and it is where GGUF and its quant types are born.","Has a UI: yes, a built-in web chat in llama-server."],"ollama":["Ollama · open source","Wraps a GGML-based engine in a simple command line and model store, with one-line downloads of ready-made models.","Special feature: a model registry (ollama pull) and a Modelfile to customize prompts and parameters.","Has a UI: yes, a desktop app and terminal chat."],"lms":["LM Studio · free desktop app","A desktop app to search, download and chat with local models, with a built-in local server.","Special feature: finds models from Hugging Face inside the app, plus the lms CLI. Uses llama.cpp and MLX engines.","Has a UI: yes, a full graphical interface."],"vllm":["vLLM · open source (Python)","A high-throughput serving engine built for GPUs and many parallel users, using PagedAttention and continuous batching.","Special feature: serving at scale (batching, multi-GPU). GGUF is secondary here; its main formats are safetensors with AWQ, GPTQ or FP8 quants.","Has a UI: no. Connect Open WebUI or a similar tool to its API."]},note:"Examples only. Check each model page for the latest releases.",
 q:{"Q2_K":["Q2_K · about 2.6 to 3 bits","Smallest file, biggest quality loss. Only for very tight memory. An 8B model is about 3 GB."],"Q4_K_M":["Q4_K_M · about 4.8 bits","The common default. Q4 = 4-bit, K = k-quant method, M = medium mix. A good balance of size and quality. An 8B model is about 5 GB."],"Q5_K_M":["Q5_K_M · about 5.7 bits","Closer to the original quality for roughly 15 to 20 percent more size than Q4_K_M. An 8B model is about 5.7 GB."],"Q6_K":["Q6_K · about 6.6 bits","Very close to the original. A good pick if you have spare memory. An 8B model is about 6.6 GB."],"Q8_0":["Q8_0 · 8 bits","Practically indistinguishable from the original at about half its size. An 8B model is about 8.5 GB."],"F16":["F16 · 16 bits","No quantization: the full-precision original (BF16 is a close sibling). The biggest file. An 8B model is about 16 GB."]},
 m:{"Qwen":["Qwen · Alibaba","Qwen3: dense models from 0.6B to 32B, plus MoE ones such as 30B-A3B.","Variants: Instruct, Coder, VL (vision)."],"gpt-oss":["gpt-oss · OpenAI","Open-weight MoE models in two sizes: 20B and 120B.","Released natively in MXFP4, so its GGUF files mostly come in a single quant."],"Gemma":["Gemma · Google","Gemma 3: 1B, 4B, 12B and 27B (4B and up also read images).","Variants: it (instruction-tuned), pt (pretrained), QAT builds."],"Llama":["Llama · Meta","Llama 3.1, 3.2 and 3.3 from 1B to 405B. Llama 4 Scout and Maverick are MoE.","Variants: Instruct, Base, Vision."],"Mistral":["Mistral · Mistral AI","Mistral 7B, Nemo 12B, Small 24B and Mixtral (MoE).","Variants: Instruct, plus Devstral for coding."],"DeepSeek":["DeepSeek","R1 is a huge 671B MoE reasoning model. Most people run its distills (1.5B to 70B).","Variants: V3 (general), R1 (reasoning), R1-Distill."]},
 pause:"Pause",play:"Play",h1:"1. Data source",h1b:"(Model Artifact)",h2:"2. Execution engines and processing layer",h2b:"(Inference Runtimes)",h3:"3. Programming interface layer",h3b:"(API Endpoints)",
@@ -98,8 +99,8 @@ d:"Add the file to the models folder and it shows up in your library. The engine
 vllm:{s:"Fast high-throughput server",api:"OpenAI-compatible at /v1",ui:"None (connect Open WebUI)",
 d:"GGUF support is still experimental and is not vLLM's most optimized path. You usually have to pass the original model's tokenizer separately. It has no UI, so connect a tool like Open WebUI to its API for chatting."}}},
 fa:{title:"یک فایل GGUF چطور به API و رابط کاربری تبدیل می‌شود؟",
-lead:"فایل GGUF وزن‌ها، توکنایزر و تنظیمات مدل را یکجا نگه می‌دارد. هر ابزار آن را با یک موتور استنتاج باز می‌کند و بعد یک API یا یک رابط گرافیکی جلوی آن می‌گذارد. ابزاری را انتخاب کنید تا مسیرش پررنگ شود. روی هر کادر، نوع کوانتایز یا مدل کلیک کنید تا توضیحش را ببینید.",
-all:"همه",ex:"نمونه‌ها",qt:"انواع کوانتایز",s:{"file":["model.gguf · منبع داده","GGUF قالب تک‌فایلی پروژه GGML / llama.cpp است. تانسورها (وزن‌ها)، توکنایزر و متادیتا را در خود دارد و از کوانتایز (Q4_K_M، Q5_K، FP16 و غیره) پشتیبانی می‌کند.","از کجا بگیریم: Hugging Face Hub (با hf download ... یا نام قدیمی huggingface-cli download) یا روی SSD محلی، مثلاً /models/llama-3-8b.gguf."],"api":["API · اندپوینت‌های سازگار با OpenAI","هر چهار ابزار اندپوینت‌های استاندارد HTTP (REST) می‌دهند و استریم را با Server-Sent Events پشتیبانی می‌کنند.","POST /v1/chat/completions: مکالمه تعاملی با تاریخچه پیام‌ها.","POST /v1/embeddings: تبدیل متن به وکتور برای RAG و جست‌وجوی معنایی (نیازمند مدل مناسب embedding)."],"ui":["رابط کاربری · فرانت‌اندها و برنامه‌ها","فرانت‌اندها از طریق API با مدل حرف می‌زنند. رابط‌های چت مثل Open WebUI یا LibreChat یک پنل شبیه ChatGPT برای استفاده شخصی یا تیمی می‌دهند.","نرم‌افزار خودتان هم می‌تواند وصل شود: کتابخانه openai پایتون یا Node.js را به آدرس محلی وصل کنید، مثلاً http://localhost:11434/v1 برای Ollama."]},e:{"llama":["llama.cpp · متن‌باز، C/C++","موتور مرجع GGUF. روی CPU، Apple Silicon، NVIDIA، AMD و بیشتر اجرا می‌شود و بارگذاری بخشی روی GPU را هم پشتیبانی می‌کند.","ویژگی خاص: تقریباً همه‌جا اجرا می‌شود، حتی روی سیستم‌های ضعیف، و GGUF و انواع کوانتایزش از همین‌جا می‌آیند.","رابط کاربری: دارد، چت وب داخلی در llama-server."],"ollama":["Ollama · متن‌باز","یک موتور مبتنی بر GGML را با خط فرمان ساده و مخزن مدل بسته‌بندی می‌کند و مدل‌های آماده را با یک دستور دانلود می‌کند.","ویژگی خاص: رجیستری مدل (ollama pull) و Modelfile برای شخصی‌سازی پرامپت و پارامترها.","رابط کاربری: دارد، اپ دسکتاپ و چت ترمینال."],"lms":["LM Studio · اپ دسکتاپ رایگان","اپ دسکتاپ برای جست‌وجو، دانلود و چت با مدل‌های محلی، همراه با سرور محلی داخلی.","ویژگی خاص: پیدا کردن مدل از Hugging Face داخل خود اپ، به‌علاوه خط فرمان lms. از موتورهای llama.cpp و MLX استفاده می‌کند.","رابط کاربری: دارد، رابط گرافیکی کامل."],"vllm":["vLLM · متن‌باز (پایتون)","موتور سرو با توان بالا برای GPU و کاربران هم‌زمان زیاد، با PagedAttention و continuous batching.","ویژگی خاص: سرو در مقیاس بالا (batching و چند GPU). GGUF در آن فرعی است و قالب‌های اصلی‌اش safetensors با کوانتایز AWQ/GPTQ/FP8 است.","رابط کاربری: ندارد. Open WebUI یا ابزار مشابه را به API آن وصل کنید."]},note:"فقط نمونه‌اند؛ برای جدیدترین نسخه‌ها صفحه خود مدل را ببینید.",
+lead:"فایل GGUF وزن‌ها، توکنایزر و تنظیمات مدل را یکجا نگه می‌دارد. هر ابزار آن را با یک موتور استنتاج باز می‌کند و بعد یک API یا یک رابط گرافیکی جلوی آن می‌گذارد. روی کادر هر موتور کلیک کنید تا مسیرش پررنگ شود و با دکمه i اطلاعات بیشتر را ببینید. روی کادرهای دیگر، نوع کوانتایز یا مدل هم کلیک کنید تا توضیحشان را ببینید.",
+all:"همه",ex:"نمونه‌ها",qt:"انواع کوانتایز",info:"اطلاعات بیشتر",s:{"file":["model.gguf · منبع داده","GGUF قالب تک‌فایلی پروژه GGML / llama.cpp است. تانسورها (وزن‌ها)، توکنایزر و متادیتا را در خود دارد و از کوانتایز (Q4_K_M، Q5_K، FP16 و غیره) پشتیبانی می‌کند.","از کجا بگیریم: Hugging Face Hub (با hf download ... یا نام قدیمی huggingface-cli download) یا روی SSD محلی، مثلاً /models/llama-3-8b.gguf."],"api":["API · اندپوینت‌های سازگار با OpenAI","هر چهار ابزار اندپوینت‌های استاندارد HTTP (REST) می‌دهند و استریم را با Server-Sent Events پشتیبانی می‌کنند.","POST /v1/chat/completions: مکالمه تعاملی با تاریخچه پیام‌ها.","POST /v1/embeddings: تبدیل متن به وکتور برای RAG و جست‌وجوی معنایی (نیازمند مدل مناسب embedding)."],"ui":["رابط کاربری · فرانت‌اندها و برنامه‌ها","فرانت‌اندها از طریق API با مدل حرف می‌زنند. رابط‌های چت مثل Open WebUI یا LibreChat یک پنل شبیه ChatGPT برای استفاده شخصی یا تیمی می‌دهند.","نرم‌افزار خودتان هم می‌تواند وصل شود: کتابخانه openai پایتون یا Node.js را به آدرس محلی وصل کنید، مثلاً http://localhost:11434/v1 برای Ollama."]},e:{"llama":["llama.cpp · متن‌باز، C/C++","موتور مرجع GGUF. روی CPU، Apple Silicon، NVIDIA، AMD و بیشتر اجرا می‌شود و بارگذاری بخشی روی GPU را هم پشتیبانی می‌کند.","ویژگی خاص: تقریباً همه‌جا اجرا می‌شود، حتی روی سیستم‌های ضعیف، و GGUF و انواع کوانتایزش از همین‌جا می‌آیند.","رابط کاربری: دارد، چت وب داخلی در llama-server."],"ollama":["Ollama · متن‌باز","یک موتور مبتنی بر GGML را با خط فرمان ساده و مخزن مدل بسته‌بندی می‌کند و مدل‌های آماده را با یک دستور دانلود می‌کند.","ویژگی خاص: رجیستری مدل (ollama pull) و Modelfile برای شخصی‌سازی پرامپت و پارامترها.","رابط کاربری: دارد، اپ دسکتاپ و چت ترمینال."],"lms":["LM Studio · اپ دسکتاپ رایگان","اپ دسکتاپ برای جست‌وجو، دانلود و چت با مدل‌های محلی، همراه با سرور محلی داخلی.","ویژگی خاص: پیدا کردن مدل از Hugging Face داخل خود اپ، به‌علاوه خط فرمان lms. از موتورهای llama.cpp و MLX استفاده می‌کند.","رابط کاربری: دارد، رابط گرافیکی کامل."],"vllm":["vLLM · متن‌باز (پایتون)","موتور سرو با توان بالا برای GPU و کاربران هم‌زمان زیاد، با PagedAttention و continuous batching.","ویژگی خاص: سرو در مقیاس بالا (batching و چند GPU). GGUF در آن فرعی است و قالب‌های اصلی‌اش safetensors با کوانتایز AWQ/GPTQ/FP8 است.","رابط کاربری: ندارد. Open WebUI یا ابزار مشابه را به API آن وصل کنید."]},note:"فقط نمونه‌اند؛ برای جدیدترین نسخه‌ها صفحه خود مدل را ببینید.",
 q:{"Q2_K":["Q2_K · حدود ۲٫۶ تا ۳ بیت","کوچک‌ترین فایل و بیشترین افت کیفیت. فقط وقتی حافظه خیلی کم است. مدل ۸ میلیاردی حدود ۳ گیگابایت."],"Q4_K_M":["Q4_K_M · حدود ۴٫۸ بیت","انتخاب پیش‌فرض رایج: Q4 یعنی ۴ بیت، K یعنی روش k-quant و M یعنی ترکیب متوسط. تعادل خوبی بین حجم و کیفیت دارد. مدل ۸ میلیاردی حدود ۵ گیگابایت."],"Q5_K_M":["Q5_K_M · حدود ۵٫۷ بیت","کیفیتی نزدیک‌تر به اصل، با حدود ۱۵ تا ۲۰ درصد حجم بیشتر از Q4_K_M. مدل ۸ میلیاردی حدود ۵٫۷ گیگابایت."],"Q6_K":["Q6_K · حدود ۶٫۶ بیت","خیلی نزدیک به نسخه اصلی. اگر حافظه اضافه دارید انتخاب خوبی است. مدل ۸ میلیاردی حدود ۶٫۶ گیگابایت."],"Q8_0":["Q8_0 · ۸ بیت","عملاً هم‌کیفیت نسخه اصلی با حدود نصف حجم. مدل ۸ میلیاردی حدود ۸٫۵ گیگابایت."],"F16":["F16 · ۱۶ بیت","بدون کوانتایز: نسخه اصلی با دقت کامل (BF16 هم نسخه نزدیک آن است). بزرگ‌ترین فایل. مدل ۸ میلیاردی حدود ۱۶ گیگابایت."]},
 m:{"Qwen":["Qwen · علی‌بابا","Qwen3: مدل‌های متراکم از ۰٫۶ تا ۳۲ میلیارد پارامتر و مدل‌های MoE مثل 30B-A3B.","نسخه‌ها: Instruct، Coder و VL (بینایی)."],"gpt-oss":["gpt-oss · OpenAI","مدل وزن‌باز MoE در دو اندازه: 20B و 120B.","به‌صورت بومی با MXFP4 عرضه شده، پس فایل‌های GGUF آن بیشتر در یک کوانت هستند."],"Gemma":["Gemma · گوگل","Gemma 3: اندازه‌های 1B، 4B، 12B و 27B (از 4B به بالا تصویر هم می‌فهمند).","نسخه‌ها: it (دستورپذیر)، pt (پیش‌آموزش‌دیده) و نسخه‌های QAT."],"Llama":["Llama · متا","Llama 3.1، 3.2 و 3.3 از 1B تا 405B؛ Llama 4 Scout و Maverick از نوع MoE هستند.","نسخه‌ها: Instruct، Base و Vision."],"Mistral":["Mistral · Mistral AI","Mistral 7B، Nemo 12B، Small 24B و Mixtral (MoE).","نسخه‌ها: Instruct و Devstral برای کدنویسی."],"DeepSeek":["DeepSeek","R1 یک مدل استدلالی MoE غول‌پیکر با 671B است؛ بیشتر مردم نسخه‌های distill آن (از 1.5B تا 70B) را اجرا می‌کنند.","نسخه‌ها: V3 (عمومی)، R1 (استدلال) و R1-Distill."]},
 pause:"توقف",play:"پخش",h1:"۱. منبع داده",h1b:"(Model Artifact)",h2:"۲. موتورهای اجرا و لایه پردازشی",h2b:"(Inference Runtimes)",h3:"۳. لایه رابط برنامه‌نویسی",h3b:"(API Endpoints)",
@@ -145,14 +146,15 @@ function build(){
   var g='<g class="tool" data-i="'+i+'">';
   list.forEach(function(q,k){
    var id="p"+i+"_"+k;
-   g+='<path id="'+id+'" d="'+q[0]+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-dasharray="5 6" opacity=".55"/>';
-   g+='<circle r="6" fill="'+col+'" opacity="0"><set attributeName="opacity" to="1" begin="'+q[1]+'s"/><animateMotion dur="2.6s" begin="'+q[1]+'s" repeatCount="indefinite"><mpath href="#'+id+'"/></animateMotion></circle>';
+   g+='<path id="'+id+'" class="flow" d="'+q[0]+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="7 10" opacity=".9"/>';
+   
   });
-  g+='<g class="eng" data-k="e" data-n="'+t.id+'" tabindex="0" role="button" aria-label="'+t.n+'"><rect x="'+R(320,250)+'" y="'+(y-48)+'" width="250" height="96" rx="14" fill="var(--card)" stroke="'+col+'" stroke-width="2.5"/>';
+  g+='<g class="ecard" data-i="'+i+'" tabindex="0" role="button" aria-label="'+t.n+'"><rect x="'+R(320,250)+'" y="'+(y-48)+'" width="250" height="96" rx="14" fill="var(--card)" stroke="'+col+'" stroke-width="2.5"/>';
   g+='<rect x="'+R(554,16)+'" y="'+(y-48)+'" width="16" height="96" rx="8" fill="'+col+'"/>';
   g+='<circle cx="'+X(346)+'" cy="'+y+'" r="21" fill="'+col+'" opacity=".16"/><g fill="'+col+'" transform="translate('+(X(346)-14)+','+(y-14)+') scale(.875)">'+IC[t.id]+'</g>';
-  g+=tx(460,y-6,t.n,23,"",800)+tx(460,y+24,D.s,13,"mut")+'</g>';
-  tools+=g;
+  g+=tx(460,y-6,t.n,23,"",800)+tx(460,y+24,D.s,13,"mut");
+  g+='<g class="inf" data-k="e" data-n="'+t.id+'" tabindex="0" role="button" aria-label="'+S.info+'"><circle cx="'+X(536)+'" cy="'+(y-31)+'" r="11" fill="var(--card)" stroke="'+col+'" stroke-width="2"/><text x="'+X(536)+'" y="'+(y-26)+'" text-anchor="middle" font-size="14" font-weight="800" style="fill:'+col+'">i</text></g></g>';
+  tools+=g+'</g>';
  });
  var ff="fill:var(--filefg)";
  o+=tools;
@@ -176,11 +178,12 @@ function mkTabs(){
  var sp=document.createElement("span");sp.className="sp";tabs.appendChild(sp);
  var pb=document.createElement("button");pb.type="button";pb.id="pb";pb.onclick=function(){paused=!paused;setPlay()};tabs.appendChild(pb);
 }
-function setPlay(){var pb=document.getElementById("pb");pb.textContent=paused?L[lang].play:L[lang].pause;paused?svg.pauseAnimations():svg.unpauseAnimations()}
+function setPlay(){var pb=document.getElementById("pb");pb.textContent=paused?L[lang].play:L[lang].pause;paused?svg.pauseAnimations():svg.unpauseAnimations();svg.classList.toggle("paused",paused)}
 function pick(i){
  sel=i;var S=L[lang];
  btns.forEach(function(b,k){b.setAttribute("aria-pressed",String(k===i+1))});
  document.querySelectorAll(".tool").forEach(function(g){g.classList.toggle("dim",i>=0&&+g.dataset.i!==i)});
+ document.querySelectorAll(".ecard").forEach(function(g){g.classList.toggle("act",+g.dataset.i===i)});
  if(i<0){
   panel.innerHTML='<h2>'+h(S.ovT)+'</h2><p>'+h(S.ov)+'</p><div class="chips"><span>'+h(S.c1)+'</span><span>'+h(S.c2)+'</span><span>'+h(S.c3)+'</span><span>'+h(S.c4)+'</span></div>';
  }else{
@@ -208,14 +211,14 @@ function showTip(g){
  hideTip();var S=L[lang],k=g.dataset.k,a=k==="e"?engTip(g.dataset.n):k==="s"?srcTip(g.dataset.n):(k==="q"?S.q:S.m)[g.dataset.n];if(!a)return;cur=g;g.classList.add("on");
  tip.innerHTML='<b>'+h(a[0])+'</b>'+a.slice(1).map(function(p){return '<p>'+h(p)+'</p>'}).join('')+(k==="m"?'<small>'+h(S.note)+'</small>':'')+(a.url?'<a href="https://'+a.url+'" target="_blank" rel="noopener noreferrer">'+h(a.url)+'</a>':'');
  tip.style.display="block";tip.style.left="0px";tip.style.top="0px";
- var s=stage.getBoundingClientRect(),r=g.getBoundingClientRect(),w=tip.offsetWidth,ht=tip.offsetHeight;
+ var s=stage.getBoundingClientRect(),r=(g.closest(".ecard")||g).getBoundingClientRect(),w=tip.offsetWidth,ht=tip.offsetHeight;
  var left=lang==="fa"?r.left-s.left-w-10:r.right-s.left+10;
  left=Math.max(8,Math.min(left,s.width-w-8));
  tip.style.left=left+"px";tip.style.top=Math.max(8,Math.min(r.top-s.top-8,s.height-ht-8))+"px";
 }
 function toggle(g){if(cur===g){hideTip();return}showTip(g)}
-svg.addEventListener("click",function(e){var g=e.target.closest(".ex,.eng");if(g)toggle(g);else hideTip()});
-svg.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){var g=e.target.closest(".ex,.eng");if(g){e.preventDefault();toggle(g)}}});
+svg.addEventListener("click",function(e){var t=e.target,i=t.closest(".inf");if(i){toggle(i);return}var c=t.closest(".ecard");if(c){hideTip();pick(sel===+c.dataset.i?-1:+c.dataset.i);return}var g=t.closest(".ex,.eng");if(g)toggle(g);else hideTip()});
+svg.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){var g=e.target.closest&&e.target.closest(".ex,.eng,.ecard,.inf");if(g&&g===e.target){e.preventDefault();g.dispatchEvent(new MouseEvent("click",{bubbles:true}))}}});
 document.addEventListener("click",function(e){if(!stage.contains(e.target))hideTip()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")hideTip()});
 setLang("en");
