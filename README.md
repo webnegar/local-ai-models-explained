@@ -1,4 +1,3 @@
-[Uploading README.md…]()
 # GGUF Flow: from a model file to an API and a UI
 
 **[English](#english) · [فارسی](#فارسی)**
@@ -88,7 +87,6 @@ YouTube: [@DeeplySimpleTech](https://www.youtube.com/@DeeplySimpleTech)
 
 ### License
 
-MIT. Add a `LICENSE` file, or change this section to the license you prefer.
 
 ---
 
@@ -177,6 +175,5 @@ with sync_playwright() as p:
 
 ### مجوز
 
-MIT. فایل `LICENSE` را اضافه کنید، یا این بخش را با مجوز دلخواه‌تان عوض کنید.
 
 </div>
