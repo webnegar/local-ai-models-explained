@@ -1,5 +1,8 @@
 # GGUF Flow: from a model file to an API and a UI
 
+<img width="990" height="707" alt="image" src="https://github.com/user-attachments/assets/6d78e4ff-d12b-4614-b26a-d7c40dcb5429" />
+
+
 **[English](#english) · [فارسی](#فارسی)**
 
 ---
